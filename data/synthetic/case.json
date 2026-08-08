@@ -1,0 +1,9 @@
+{
+  "case_id": "CASE-001",
+  "evidence_id": "EVID-CASE-001",
+  "title": "Synthetic Multi-Node System Access Audit",
+  "objective": "Analyze the available synthetic evidence, identify relationships between entities and events, construct a timeline, and identify findings that require human review.",
+  "classification": "SYNTHETIC_DEMO_DATA_ONLY",
+  "created_at": "2026-03-01T00:00:00Z",
+  "status": "OPEN_SYNTHETIC_INVESTIGATION"
+}

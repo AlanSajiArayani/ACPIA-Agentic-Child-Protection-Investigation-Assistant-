@@ -1,0 +1,58 @@
+[
+  {
+    "account_id": "Account_001",
+    "evidence_id": "EVID-ACC-001",
+    "owner_person_id": "Person_A",
+    "platform_name": "SyntheticMesh-Chat",
+    "handle": "@amercer_node",
+    "created_at": "2026-01-10T12:00:00Z"
+  },
+  {
+    "account_id": "Account_002",
+    "evidence_id": "EVID-ACC-002",
+    "owner_person_id": "Person_B",
+    "platform_name": "SyntheticMesh-Chat",
+    "handle": "@bvance_sec",
+    "created_at": "2026-01-12T14:30:00Z"
+  },
+  {
+    "account_id": "Account_003",
+    "evidence_id": "EVID-ACC-003",
+    "owner_person_id": "Person_C",
+    "platform_name": "SyntheticMesh-Chat",
+    "handle": "@creed_admin",
+    "created_at": "2026-01-15T09:15:00Z"
+  },
+  {
+    "account_id": "Account_004",
+    "evidence_id": "EVID-ACC-004",
+    "owner_person_id": "Person_A",
+    "platform_name": "FictionalCloud-Console",
+    "handle": "usr_amercer_alt",
+    "created_at": "2026-02-01T11:00:00Z"
+  },
+  {
+    "account_id": "Account_005",
+    "evidence_id": "EVID-ACC-005",
+    "owner_person_id": "Person_D",
+    "platform_name": "SyntheticMesh-Chat",
+    "handle": "@dellis_audit",
+    "created_at": "2026-02-05T16:20:00Z"
+  },
+  {
+    "account_id": "Account_006",
+    "evidence_id": "EVID-ACC-006",
+    "owner_person_id": "Person_E",
+    "platform_name": "FictionalCloud-Console",
+    "handle": "usr_ewright_node",
+    "created_at": "2026-02-10T08:45:00Z"
+  },
+  {
+    "account_id": "Account_007",
+    "evidence_id": "EVID-ACC-007",
+    "owner_person_id": "Person_F",
+    "platform_name": "SyntheticMesh-Chat",
+    "handle": "@fflynn_gateway",
+    "created_at": "2026-02-15T13:10:00Z"
+  }
+]

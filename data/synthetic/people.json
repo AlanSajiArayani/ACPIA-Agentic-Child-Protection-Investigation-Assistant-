@@ -1,0 +1,93 @@
+[
+  {
+    "person_id": "Person_A",
+    "evidence_id": "EVID-PER-001",
+    "display_name": "Alex Mercer",
+    "aliases": [
+      "amercer_synth",
+      "operator_alpha"
+    ],
+    "associated_account_ids": [
+      "Account_001",
+      "Account_004"
+    ],
+    "associated_device_ids": [
+      "DEV-SYNTH-101"
+    ]
+  },
+  {
+    "person_id": "Person_B",
+    "evidence_id": "EVID-PER-002",
+    "display_name": "Blair Vance",
+    "aliases": [
+      "bvance_synth",
+      "net_sec_beta"
+    ],
+    "associated_account_ids": [
+      "Account_002"
+    ],
+    "associated_device_ids": [
+      "DEV-SYNTH-102"
+    ]
+  },
+  {
+    "person_id": "Person_C",
+    "evidence_id": "EVID-PER-003",
+    "display_name": "Charlie Reed",
+    "aliases": [
+      "creed_synth",
+      "sys_admin_gamma"
+    ],
+    "associated_account_ids": [
+      "Account_003"
+    ],
+    "associated_device_ids": [
+      "DEV-SYNTH-103"
+    ]
+  },
+  {
+    "person_id": "Person_D",
+    "evidence_id": "EVID-PER-004",
+    "display_name": "Dana Ellis",
+    "aliases": [
+      "dellis_synth",
+      "auditor_delta"
+    ],
+    "associated_account_ids": [
+      "Account_005"
+    ],
+    "associated_device_ids": [
+      "DEV-SYNTH-104"
+    ]
+  },
+  {
+    "person_id": "Person_E",
+    "evidence_id": "EVID-PER-005",
+    "display_name": "Evan Wright",
+    "aliases": [
+      "ewright_synth",
+      "node_epsilon"
+    ],
+    "associated_account_ids": [
+      "Account_006"
+    ],
+    "associated_device_ids": [
+      "DEV-SYNTH-105"
+    ]
+  },
+  {
+    "person_id": "Person_F",
+    "evidence_id": "EVID-PER-006",
+    "display_name": "Fiona Flynn",
+    "aliases": [
+      "fflynn_synth",
+      "gateway_zeta"
+    ],
+    "associated_account_ids": [
+      "Account_007"
+    ],
+    "associated_device_ids": [
+      "DEV-SYNTH-106"
+    ]
+  }
+]

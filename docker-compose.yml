@@ -1,0 +1,131 @@
+services:
+  # ----------------------------------------------------------------------------
+  # PostgreSQL + pgvector Database
+  # Handles case metadata, structured audit logs, and vector embeddings
+  # ----------------------------------------------------------------------------
+  postgres:
+    image: pgvector/pgvector:pg16
+    container_name: acpia_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-acpia_db}
+      POSTGRES_USER: ${POSTGRES_USER:-acpia_admin}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-acpia_secure_pass_2026}
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./database/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-acpia_admin} -d ${POSTGRES_DB:-acpia_db}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ----------------------------------------------------------------------------
+  # Neo4j Graph Database (Community Edition)
+  # Stores synthetic entity networks, identifier correlation, and link analysis
+  # ----------------------------------------------------------------------------
+  neo4j:
+    image: neo4j:5-community
+    container_name: acpia_neo4j
+    restart: unless-stopped
+    environment:
+      NEO4J_AUTH: ${NEO4J_USER:-neo4j}/${NEO4J_PASSWORD:-acpia_graph_pass_2026}
+      NEO4J_PLUGINS: '["apoc"]'
+    ports:
+      - "${NEO4J_HTTP_PORT:-7474}:7474"
+      - "${NEO4J_PORT:-7687}:7687"
+    volumes:
+      - neo4j_data:/data
+      - ./database/neo4j:/startup-scripts:ro
+    healthcheck:
+      test: ["CMD-SHELL", "cypher-shell -u ${NEO4J_USER:-neo4j} -p ${NEO4J_PASSWORD:-acpia_graph_pass_2026} 'RETURN 1;'"]
+      interval: 15s
+      timeout: 10s
+      retries: 5
+
+  # ----------------------------------------------------------------------------
+  # Ollama Local AI Engine
+  # Air-gapped local model inference for agent planning and reasoning
+  # ----------------------------------------------------------------------------
+  ollama:
+    image: ollama/ollama:latest
+    container_name: acpia_ollama
+    restart: unless-stopped
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+
+  # ----------------------------------------------------------------------------
+  # Self-Hosted n8n Workflow Orchestrator
+  # Event-driven asynchronous workflows, webhooks, and pipeline automation
+  # ----------------------------------------------------------------------------
+  n8n:
+    image: n8nio/n8n:latest
+    container_name: acpia_n8n
+    restart: unless-stopped
+    environment:
+      - N8N_BASIC_AUTH_ACTIVE=${N8N_BASIC_AUTH_ACTIVE:-true}
+      - N8N_BASIC_AUTH_USER=${N8N_BASIC_AUTH_USER:-admin}
+      - N8N_BASIC_AUTH_PASSWORD=${N8N_BASIC_AUTH_PASSWORD:-acpia_n8n_pass_2026}
+      - WEBHOOK_URL=http://localhost:5678/
+    ports:
+      - "${N8N_PORT:-5679}:5678"
+    volumes:
+      - n8n_data:/home/node/.n8n
+
+  # ----------------------------------------------------------------------------
+  # ACPIA FastAPI Backend Service
+  # Gateway API, tool execution interface, and agent state manager
+  # ----------------------------------------------------------------------------
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: acpia_backend
+    restart: unless-stopped
+    env_file:
+      - .env
+    ports:
+      - "${BACKEND_PORT:-8000}:8000"
+    volumes:
+      - ./backend:/app
+      - ./agents:/app/agents
+      - ./tools:/app/tools
+      - ./data:/app/data
+    depends_on:
+      postgres:
+        condition: service_healthy
+      neo4j:
+        condition: service_healthy
+      ollama:
+        condition: service_started
+
+  # ----------------------------------------------------------------------------
+  # ACPIA Next.js Frontend Dashboard
+  # Agent monitor, live execution tree, entity graph, and human review portal
+  # ----------------------------------------------------------------------------
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: acpia_frontend
+    restart: unless-stopped
+    environment:
+      - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL:-http://localhost:8000/api/v1}
+    ports:
+      - "${PORT:-3000}:3000"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+      - /app/.next
+    depends_on:
+      - backend
+
+volumes:
+  postgres_data:
+  neo4j_data:
+  ollama_data:
+  n8n_data:

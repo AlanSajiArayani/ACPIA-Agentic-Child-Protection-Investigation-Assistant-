@@ -1,0 +1,19 @@
+{
+  "document_id": "Doc_002",
+  "evidence_id": "EVID-DOC-002",
+  "title": "Fictional Transaction Summary - Synthetic Token Transfer",
+  "timestamp": "2026-03-05T13:30:00Z",
+  "author": "Person_F",
+  "referenced_entities": [
+    "Person_C",
+    "Person_F",
+    "Account_007",
+    "Location_005"
+  ],
+  "referenced_event_ids": [
+    "Event_005",
+    "Event_012"
+  ],
+  "summary": "Summary of synthetic token authorizations across Gateway Epsilon.",
+  "content_body": "Transaction Log #9902: 500 synthetic verification tokens issued by Person_F at Location_005. Linked to Account_007 and cross-referenced with Event_005 and Event_012."
+}

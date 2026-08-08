@@ -1,0 +1,21 @@
+{
+  "document_id": "Doc_004",
+  "evidence_id": "EVID-DOC-004",
+  "title": "Fictional System Report - Network Topology Sync",
+  "timestamp": "2026-03-06T09:30:00Z",
+  "author": "Person_A",
+  "referenced_entities": [
+    "Person_A",
+    "Person_C",
+    "Person_D",
+    "Person_E",
+    "Location_004",
+    "Location_006"
+  ],
+  "referenced_event_ids": [
+    "Event_006",
+    "Event_011"
+  ],
+  "summary": "System synchronization report detailing network node linkages.",
+  "content_body": "Network Report #771: Topology sync initiated by Person_A and Person_D at Location_006 for Event_006. Node topology verified with Person_C and Person_E at Location_004 for Event_011."
+}

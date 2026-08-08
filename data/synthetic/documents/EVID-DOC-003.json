@@ -1,0 +1,19 @@
+{
+  "document_id": "Doc_003",
+  "evidence_id": "EVID-DOC-003",
+  "title": "Fictional Access Log - Data Center Badge Sign-ins",
+  "timestamp": "2026-03-03T14:15:00Z",
+  "author": "Person_D",
+  "referenced_entities": [
+    "Person_B",
+    "Person_D",
+    "Person_E",
+    "Location_003"
+  ],
+  "referenced_event_ids": [
+    "Event_003",
+    "Event_009"
+  ],
+  "summary": "Access badge record for Audit Hub Gamma Room 404.",
+  "content_body": "Badge Reader Log #404: Badge DEV-SYNTH-102 (Person_B) and DEV-SYNTH-104 (Person_D) logged at Location_003 during Event_003. Telemetry added for Person_E during Event_009."
+}

@@ -1,0 +1,18 @@
+{
+  "document_id": "Doc_001",
+  "evidence_id": "EVID-DOC-001",
+  "title": "Fictional Incident Log - System Kernel Audit",
+  "timestamp": "2026-03-02T10:00:00Z",
+  "author": "Person_C",
+  "referenced_entities": [
+    "Person_A",
+    "Person_C",
+    "Account_004",
+    "Location_002"
+  ],
+  "referenced_event_ids": [
+    "Event_002"
+  ],
+  "summary": "Log documenting the transfer of synthetic configuration keys for Relay Station Beta.",
+  "content_body": "Incident Log Entry #8841: Synthetic security key rotated by Person_C. Key associated with Account_004 and verified at Location_002 for Event_002."
+}

@@ -1,0 +1,54 @@
+# Node / Next.js
+frontend/node_modules/
+frontend/.next/
+frontend/out/
+frontend/build/
+frontend/.vercel/
+*.tsbuildinfo
+frontend/next-env.d.ts
+
+# Python / FastAPI
+backend/__pycache__/
+backend/*/__pycache__/
+backend/*/*/__pycache__/
+backend/*/*/*/__pycache__/
+*.py[cod]
+*$py.class
+backend/.venv/
+backend/venv/
+backend/env/
+.venv/
+ENV/
+env/
+
+# IDE & OS
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# Environment & Secrets
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Database Data Volumes (Docker persistence)
+docker/data/
+docker/pgdata/
+docker/neo4j/data/
+docker/neo4j/logs/
+docker/n8n_data/
+docker/ollama_data/
+
+# Logs & Temp files
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+logs/
+temp/
+tmp/
