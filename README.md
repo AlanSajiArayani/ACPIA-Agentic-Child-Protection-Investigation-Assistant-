@@ -16,7 +16,7 @@ An investigation-support prototype for authorized investigators, powered by auto
 - **Multi-Database Knowledge Engine**:
   - **PostgreSQL + pgvector**: Immutable audit logs, case metadata, and high-dimensional multi-modal vector search.
   - **Neo4j 5 Community Edition**: Graph analysis for entity linking, pseudonym tracking, and relationship visualization.
-- **Air-Gapped Privacy**: Local LLM inference powered by containerized **Ollama** (Llama 3 / Mistral).
+- **Air-Gapped Privacy**: Local LLM inference powered by host **Ollama** (`qwen3:4b`).
 - **Human-in-the-Loop Safeguards**: Critical decision gates require explicit investigator sign-off before actions are executed or final reports generated.
 
 ---
@@ -30,7 +30,7 @@ An investigation-support prototype for authorized investigators, powered by auto
 | **Agents** | Custom Autonomous Agent Loop (Planner, Re-planner, State Engine) |
 | **Tool Registry** | Sandboxed Python Tools (Media, Text, Network analysis) |
 | **Orchestration** | Self-hosted n8n (Docker) |
-| **Local AI** | Ollama Engine |
+| **Local AI** | Ollama Engine on Host (`qwen3:4b`) |
 | **Databases** | PostgreSQL 16 + pgvector, Neo4j 5 Community Edition |
 | **Infrastructure** | Docker & Docker Compose |
 
@@ -47,7 +47,8 @@ ACPIA/
 ├── data/
 │   └── synthetic/             # Synthetic evidence datasets & schemas
 ├── database/                  # PostgreSQL init.sql & Neo4j init.cypher
-├── n8n/                       # Workflow orchestration configs
+├── n8n/                       # Workflow orchestration configs & JSON workflows
+│   └── workflows/             # Exported n8n test & pipeline workflows
 ├── docker/                    # Docker container definitions
 ├── docs/
 │   └── ARCHITECTURE.md        # Comprehensive system architecture & data flows
@@ -59,10 +60,48 @@ ACPIA/
 
 ---
 
+## Ollama & Dockerized n8n Local AI Integration (Phase 8.2)
+
+### 1. Host Ollama Installation Requirement
+- Download and install Ollama on Windows from [https://ollama.com](https://ollama.com).
+- Download the required local model:
+  ```powershell
+  ollama pull qwen3:4b
+  ```
+- Verify Ollama is responding on the Windows host:
+  - Base URL: `http://localhost:11434`
+  - Model Endpoint: `http://localhost:11434/api/generate`
+
+### 2. Windows + Docker Desktop Networking Explanation
+- Containers inside Docker on Windows cannot use `localhost` to reach services running on the host OS (`localhost` inside a container targets the container itself).
+- ACPIA uses **`host.docker.internal`** configured in `docker-compose.yml` via:
+  ```yaml
+  extra_hosts:
+    - "host.docker.internal:host-gateway"
+  ```
+- n8n communicates with Ollama via environment variable:
+  ```env
+  OLLAMA_BASE_URL=http://host.docker.internal:11434
+  ```
+
+### 3. Executing the n8n Connectivity Test Workflow
+1. Start the Docker stack including n8n:
+   ```powershell
+   docker-compose up -d n8n
+   ```
+2. Open n8n in your browser at `http://localhost:5679` (or port `5678`).
+3. Import the workflow JSON located at:
+   `n8n/workflows/acpia_ollama_test_workflow.json`
+4. Click **Test workflow** on the manual trigger.
+5. The HTTP Request node sends a prompt to `qwen3:4b` via `http://host.docker.internal:11434/api/generate` and receives a live response from local hardware.
+
+---
+
 ## Getting Started
 
 ### Prerequisites
 - Docker Engine v24+ and Docker Compose v2+
+- Ollama installed on Windows Host with `qwen3:4b` model
 - Git
 
 ### Launching the Stack
@@ -83,29 +122,8 @@ ACPIA/
    - **Frontend Dashboard**: `http://localhost:3000`
    - **FastAPI API Documentation**: `http://localhost:8000/docs`
    - **Neo4j Browser**: `http://localhost:7474`
-   - **n8n Workflow Editor**: `http://localhost:5678`
-   - **Ollama Engine**: `http://localhost:11434`
-
----
-
-## Project Status & Implementation Roadmap
-
-### Currently Created (Phase 1 Architecture Setup)
-- [x] Initial Monorepo Structure (`frontend`, `backend`, `agents`, `tools`, `data/synthetic`, `database`, `n8n`, `docker`)
-- [x] Global Configuration (`docker-compose.yml`, `.env.example`, `.gitignore`)
-- [x] System Architecture Documentation (`docs/ARCHITECTURE.md`)
-- [x] Frontend Next.js / TypeScript / Tailwind CSS skeleton files & manifest
-- [x] Backend FastAPI skeleton, requirements, and Dockerfile
-- [x] Database initializations (PostgreSQL + pgvector `init.sql`, Neo4j `init.cypher`)
-- [x] Framework READMEs for `agents/`, `tools/`, `data/synthetic/`, `database/`, `n8n/`, and `docker/`
-
-### Remaining to be Implemented (Future Tasks)
-- [ ] Agent Core Execution Engine (Planner, Delegator, Re-planner loop implementation)
-- [ ] Sandboxed Tool Implementations (`media/`, `text/`, `network/` functional tool scripts)
-- [ ] FastAPI Endpoints & WebSocket streaming handlers
-- [ ] Next.js Interactive Dashboard UI components (Agent Execution Tree, Entity Graph viewer, Human Gate Modal)
-- [ ] Sample Synthetic Data Generators & Ingestion Scripts
-- [ ] n8n Workflow Exports and Automation Templates
+   - **n8n Workflow Editor**: `http://localhost:5679`
+   - **Host Ollama API**: `http://localhost:11434`
 
 ---
 

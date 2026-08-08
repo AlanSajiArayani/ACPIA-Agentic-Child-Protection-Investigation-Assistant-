@@ -71,10 +71,14 @@ services:
       - N8N_BASIC_AUTH_USER=${N8N_BASIC_AUTH_USER:-admin}
       - N8N_BASIC_AUTH_PASSWORD=${N8N_BASIC_AUTH_PASSWORD:-acpia_n8n_pass_2026}
       - WEBHOOK_URL=http://localhost:5678/
+      - OLLAMA_BASE_URL=${OLLAMA_BASE_URL:-http://host.docker.internal:11434}
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     ports:
       - "${N8N_PORT:-5679}:5678"
     volumes:
       - n8n_data:/home/node/.n8n
+      - ./n8n/workflows:/home/node/.n8n/workflows:ro
 
   # ----------------------------------------------------------------------------
   # ACPIA FastAPI Backend Service
