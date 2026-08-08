@@ -1,5 +1,5 @@
 from typing import List
-from app.models.case import CaseCreate, CaseResponse
+from ..models.case import CaseCreate, CaseResponse
 import uuid
 from datetime import datetime
 

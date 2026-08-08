@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException, status
 from typing import List
-from app.models.case import CaseCreate, CaseResponse, AgentJobCreate, AgentJobResponse
-from app.services.case_service import CaseService
+from ..models.case import CaseCreate, CaseResponse, AgentJobCreate, AgentJobResponse
+from ..services.case_service import CaseService
 from datetime import datetime
 import uuid
 

@@ -1,23 +1,82 @@
-# ACPIA Backend (FastAPI Gateway)
+# ACPIA Backend (FastAPI Gateway Skeleton)
 
-The backend module serves as the central REST / WebSocket API gateway, connecting the Next.js frontend with the Agent Framework, Tool Registry, PostgreSQL/pgvector, Neo4j graph database, and Ollama local AI engine.
+Phase 6.1 implementation establishing the foundational API gateway layer for **ACPIA (Agentic Child Protection Investigation Assistant)**.
 
-## Tech Stack
-- **Framework**: Python 3.11, FastAPI
-- **Validation**: Pydantic v2
-- **Database Drivers**: AsyncPG (PostgreSQL), Neo4j Python Async Driver
-- **Async HTTP**: HTTPX
+The backend functions strictly as the application control and API interface layer. It does not contain AI reasoning or chatbot logic.
 
-## Module Structure
+---
+
+## Directory Hierarchy
+
 ```
 backend/
 ├── app/
-│   ├── main.py          # FastAPI application entrypoint
-│   ├── api/             # API Routers (cases, agents, tools)
-│   ├── core/            # Configuration & Database connection session setup
-│   ├── models/          # Pydantic schemas & ORM models
-│   └── services/        # Service layer logic
-├── requirements.txt
-├── Dockerfile
-└── README.md
+│   ├── __init__.py
+│   ├── main.py             # FastAPI entrypoint application & GET /health
+│   ├── config.py           # Configuration management via pydantic-settings
+│   ├── api/
+│   │   └── __init__.py     # API Router package
+│   ├── models/
+│   │   └── __init__.py     # Data models package
+│   ├── schemas/
+│   │   └── __init__.py     # Pydantic schemas package
+│   ├── services/
+│   │   └── __init__.py     # Service layer package
+│   └── database/
+│       └── __init__.py     # Database persistence package
+├── tests/
+│   └── test_health.py      # Pytest automated health check test
+├── requirements.txt        # Minimal backend dependencies
+├── .env.example            # Environment variables template
+└── README.md               # Backend documentation
+```
+
+---
+
+## Configuration & Environment
+
+Configuration is managed dynamically via `pydantic-settings` in `app/config.py`.
+
+Default environment variables (see `.env.example`):
+- `PROJECT_NAME`: `"acpia-backend"`
+- `ENV`: `"development"`
+- `HOST`: `"0.0.0.0"`
+- `PORT`: `8000`
+
+---
+
+## Quickstart & Execution
+
+### 1. Install Dependencies
+```bash
+pip install -r requirements.txt
+```
+
+### 2. Run the Development Server
+```bash
+uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+```
+
+### 3. Access API Documentation
+- Interactive OpenAPI Docs: [http://localhost:8000/docs](http://localhost:8000/docs)
+- ReDoc Docs: [http://localhost:8000/redoc](http://localhost:8000/redoc)
+
+### 4. Run Automated Tests
+```bash
+pytest
+```
+
+---
+
+## Endpoints
+
+### `GET /health`
+Returns service health status.
+
+**Response**:
+```json
+{
+  "status": "ok",
+  "service": "acpia-backend"
+}
 ```

@@ -1,7 +1,7 @@
 from typing import AsyncGenerator
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
 from neo4j import AsyncGraphDatabase, AsyncDriver
-from app.core.config import settings
+from .config import settings
 
 # PostgreSQL Async Engine & Sessionmaker
 engine = create_async_engine(settings.DATABASE_URL, echo=(settings.ENVIRONMENT == "development"))

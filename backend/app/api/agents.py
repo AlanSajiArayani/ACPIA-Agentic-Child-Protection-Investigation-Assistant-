@@ -1,6 +1,6 @@
 from fastapi import APIRouter
 from typing import List, Dict, Any
-from app.models.case import AuditLogItem
+from ..models.case import AuditLogItem
 from datetime import datetime
 
 router = APIRouter(prefix="/agents", tags=["Agents"])

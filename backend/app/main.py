@@ -1,56 +1,49 @@
-from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
+from fastapi import FastAPI, HTTPException, status
 from contextlib import asynccontextmanager
-import os
-
-from app.api import cases, agents, tools
-from app.core.database import close_db_connections
+from .config import settings
+from .database.connection import check_database_connection
+from .services.graph.client import close_graph_driver
+from .api import graph
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Startup tasks
+    # Application startup
     yield
-    # Shutdown tasks: close connection pools
-    await close_db_connections()
+    # Application shutdown: close database and graph drivers
+    close_graph_driver()
 
 app = FastAPI(
     title="ACPIA Backend API",
-    description="Agentic Child Protection Investigation Assistant API Gateway & Agent Controller",
+    description="Agentic Child Protection Investigation Assistant Gateway API",
     version="0.1.0",
+    docs_url="/docs",
+    redoc_url="/redoc",
     lifespan=lifespan,
 )
 
-# CORS setup
-cors_origins = os.getenv("CORS_ORIGINS", "http://localhost:3000,http://127.0.0.1:3000").split(",")
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=cors_origins,
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+# Register Routers
+app.include_router(graph.router)
 
-# Register API Routers under /api/v1
-app.include_router(cases.router, prefix="/api/v1")
-app.include_router(agents.router, prefix="/api/v1")
-app.include_router(tools.router, prefix="/api/v1")
-
-@app.get("/health", tags=["System"])
+@app.get("/health", tags=["Health"])
 async def health_check():
     return {
-        "status": "healthy",
-        "system": "ACPIA Backend",
-        "synthetic_data_mode": True
+        "status": "ok",
+        "service": settings.PROJECT_NAME
     }
 
-@app.get("/api/v1/status", tags=["System"])
-async def api_status():
+@app.get("/health/db", tags=["Health"])
+async def database_health_check():
+    is_connected = check_database_connection()
+    if not is_connected:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail={
+                "status": "error",
+                "database": "unavailable",
+                "message": "Failed to connect to PostgreSQL database."
+            }
+        )
     return {
-        "status": "online",
-        "services": {
-            "postgres": "configured",
-            "neo4j": "configured",
-            "ollama": "configured",
-            "n8n": "configured"
-        }
+        "status": "ok",
+        "database": "postgresql"
     }
