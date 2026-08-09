@@ -1,13 +1,17 @@
-from app.schemas.cases import (
+# Pydantic Schemas Package
+from app.models.case import (
     CaseCreate,
     CaseResponse,
     AgentJobCreate,
-    AgentJobResponse
+    AgentJobResponse,
+    AuditLogItem,
 )
 
 __all__ = [
     "CaseCreate",
     "CaseResponse",
     "AgentJobCreate",
-    "AgentJobResponse"
+    "AgentJobResponse",
+    "AuditLogItem",
 ]
+

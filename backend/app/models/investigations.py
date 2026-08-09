@@ -1,9 +1,15 @@
 import uuid
 from datetime import datetime, timezone
-from typing import Optional, List
+from typing import TYPE_CHECKING, Optional, List
 from sqlalchemy import String, Text, DateTime, ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.database.base import Base
+
+if TYPE_CHECKING:
+    from app.models.cases import Case
+    from app.models.agent_runs import AgentRun
+    from app.models.findings import Finding
+
 
 class Investigation(Base):
     __tablename__ = "investigations"

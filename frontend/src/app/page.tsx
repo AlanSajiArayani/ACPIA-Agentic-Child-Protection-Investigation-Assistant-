@@ -1,4 +1,6 @@
 import React from 'react';
+import { AgentTimeline } from '@/components/AgentTimeline';
+import { CorrelationGraph } from '@/components/CorrelationGraph';
 
 export default function Home() {
   return (
@@ -35,14 +37,14 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Dashboard Grid Skeleton */}
+      {/* Dashboard Grid */}
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         {/* Left Column: Active Cases & Agent Execution Tree */}
         <div className="rounded-xl border border-slate-800 bg-slate-900/50 p-6">
           <h3 className="text-base font-semibold text-white">Agent Execution Tree</h3>
           <p className="mt-1 text-xs text-slate-400">Live multi-agent decision steps & tool invocations</p>
-          <div className="mt-6 flex h-64 items-center justify-center rounded-lg border border-dashed border-slate-800 bg-slate-950/50 text-xs text-slate-500">
-            Execution Tree Component (Placeholder)
+          <div className="mt-6 flex h-64 overflow-y-auto rounded-lg border border-slate-800 bg-slate-950/50 p-4 text-xs text-slate-300">
+            <AgentTimeline />
           </div>
         </div>
 
@@ -50,8 +52,8 @@ export default function Home() {
         <div className="rounded-xl border border-slate-800 bg-slate-900/50 p-6">
           <h3 className="text-base font-semibold text-white">Entity Link Graph</h3>
           <p className="mt-1 text-xs text-slate-400">Neo4j synthetic relationship correlation map</p>
-          <div className="mt-6 flex h-64 items-center justify-center rounded-lg border border-dashed border-slate-800 bg-slate-950/50 text-xs text-slate-500">
-            Interactive Neo4j Graph Component (Placeholder)
+          <div className="mt-6 flex h-64 overflow-hidden rounded-lg border border-slate-800 bg-slate-950/50 text-xs text-slate-300">
+            <CorrelationGraph />
           </div>
         </div>
 
@@ -59,8 +61,8 @@ export default function Home() {
         <div className="rounded-xl border border-slate-800 bg-slate-900/50 p-6">
           <h3 className="text-base font-semibold text-white">Human Approval Gate</h3>
           <p className="mt-1 text-xs text-slate-400">Investigator sign-off & checkpoint authorizations</p>
-          <div className="mt-6 flex h-64 items-center justify-center rounded-lg border border-dashed border-slate-800 bg-slate-950/50 text-xs text-slate-500">
-            Human Review Authorization Modal (Placeholder)
+          <div className="mt-6 flex h-64 items-center justify-center rounded-lg border border-dashed border-slate-800 bg-slate-950/50 text-xs text-slate-400 p-4 text-center">
+            Checkpoint active: Standard verification awaiting human sign-off for synthetic entity correlation.
           </div>
         </div>
       </div>

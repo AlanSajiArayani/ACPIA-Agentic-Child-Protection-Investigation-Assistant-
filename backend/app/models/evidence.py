@@ -1,11 +1,15 @@
 import uuid
 from datetime import datetime, timezone
-from typing import Optional, Dict, Any
+from typing import TYPE_CHECKING, Optional, Dict, Any
 from sqlalchemy import String, Text, DateTime, ForeignKey, JSON
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from pgvector.sqlalchemy import Vector
 from app.database.base import Base
 from app.config import settings
+
+if TYPE_CHECKING:
+    from app.models.cases import Case
+
 
 class Evidence(Base):
     __tablename__ = "evidence"

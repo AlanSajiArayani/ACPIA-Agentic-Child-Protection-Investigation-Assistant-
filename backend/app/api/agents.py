@@ -1,7 +1,7 @@
 from fastapi import APIRouter
 from typing import List, Dict, Any
-from ..models.case import AuditLogItem
-from datetime import datetime
+from app.models.case import AuditLogItem
+from datetime import datetime, timezone
 
 router = APIRouter(prefix="/agents", tags=["Agents"])
 
@@ -32,6 +32,6 @@ async def get_job_audit_logs(job_id: str):
             agent_name="PlannerAgent",
             loop_stage="Plan",
             action_details={"plan_steps": ["hash_matching", "graph_traversal", "vector_similarity"]},
-            timestamp=datetime.utcnow().isoformat() + "Z"
+            timestamp=datetime.now(timezone.utc).isoformat()
         )
     ]

@@ -1,9 +1,13 @@
 import uuid
 from datetime import datetime, timezone
-from typing import Dict, Any
+from typing import TYPE_CHECKING, Dict, Any
 from sqlalchemy import String, Text, Float, DateTime, ForeignKey, JSON
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.database.base import Base
+
+if TYPE_CHECKING:
+    from app.models.investigations import Investigation
+
 
 class Finding(Base):
     __tablename__ = "findings"

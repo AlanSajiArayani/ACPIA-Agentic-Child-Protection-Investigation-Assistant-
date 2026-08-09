@@ -1,9 +1,9 @@
 from fastapi import FastAPI, HTTPException, status
 from contextlib import asynccontextmanager
-from .config import settings
-from .database.connection import check_database_connection
-from .services.graph.client import close_graph_driver
-from .api import graph, cases
+from app.config import settings
+from app.database.connection import check_database_connection
+from app.services.graph.client import close_graph_driver
+from app.api import graph, cases, agents, tools
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -21,9 +21,15 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
-# Register Routers
-app.include_router(cases.router)
+# Register Routers (both root and /api/v1 prefix for compatibility)
 app.include_router(graph.router)
+app.include_router(graph.router, prefix="/api/v1")
+app.include_router(cases.router)
+app.include_router(cases.router, prefix="/api/v1")
+app.include_router(agents.router)
+app.include_router(agents.router, prefix="/api/v1")
+app.include_router(tools.router)
+app.include_router(tools.router, prefix="/api/v1")
 
 @app.get("/health", tags=["Health"])
 async def health_check():
