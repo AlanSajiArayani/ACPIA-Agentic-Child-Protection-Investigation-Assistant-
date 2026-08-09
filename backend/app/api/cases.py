@@ -1,26 +1,30 @@
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, HTTPException, Depends, status
 from typing import List
-from ..models.case import CaseCreate, CaseResponse, AgentJobCreate, AgentJobResponse
-from ..services.case_service import CaseService
-from datetime import datetime
+from datetime import datetime, timezone
 import uuid
+from sqlalchemy.orm import Session
+from app.database.connection import get_db
+from app.schemas.cases import CaseCreate, CaseResponse, AgentJobCreate, AgentJobResponse
+from app.services.case_service import CaseService
 
 router = APIRouter(prefix="/cases", tags=["Cases"])
 
+@router.get("", response_model=List[CaseResponse])
 @router.get("/", response_model=List[CaseResponse])
-async def list_cases():
-    """List all active synthetic investigation cases."""
-    return await CaseService.list_cases()
+async def list_cases(db: Session = Depends(get_db)):
+    """List all synthetic investigation cases."""
+    return CaseService.list_cases(db)
 
+@router.post("", response_model=CaseResponse, status_code=status.HTTP_201_CREATED)
 @router.post("/", response_model=CaseResponse, status_code=status.HTTP_201_CREATED)
-async def create_synthetic_case(case_data: CaseCreate):
+async def create_synthetic_case(case_data: CaseCreate, db: Session = Depends(get_db)):
     """Create a new synthetic investigation case."""
     if not case_data.synthetic_mode:
         raise HTTPException(
-            status_code=400,
+            status_code=status.HTTP_400_BAD_REQUEST,
             detail="ACPIA operates exclusively in synthetic data mode."
         )
-    return await CaseService.create_case(case_data)
+    return CaseService.create_case(db, case_data)
 
 @router.post("/{case_id}/agent-jobs", response_model=AgentJobResponse)
 async def submit_agent_goal(case_id: str, job_data: AgentJobCreate):
@@ -32,5 +36,5 @@ async def submit_agent_goal(case_id: str, job_data: AgentJobCreate):
         goal=job_data.goal,
         status="running",
         current_stage="Observe",
-        created_at=datetime.utcnow().isoformat() + "Z"
+        created_at=datetime.now(timezone.utc)
     )

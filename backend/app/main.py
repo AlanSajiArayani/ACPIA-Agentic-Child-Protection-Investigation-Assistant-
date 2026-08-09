@@ -3,7 +3,7 @@ from contextlib import asynccontextmanager
 from .config import settings
 from .database.connection import check_database_connection
 from .services.graph.client import close_graph_driver
-from .api import graph
+from .api import graph, cases
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -22,6 +22,7 @@ app = FastAPI(
 )
 
 # Register Routers
+app.include_router(cases.router)
 app.include_router(graph.router)
 
 @app.get("/health", tags=["Health"])
