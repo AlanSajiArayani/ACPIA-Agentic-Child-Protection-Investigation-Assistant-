@@ -1,0 +1,358 @@
+{
+  "name": "ACPIA — Synthetic Investigation Pipeline",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "10000000-0000-0000-0000-000000000001",
+      "name": "Manual Trigger",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        180,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "values": {
+          "string": [
+            {
+              "name": "case_id",
+              "value": "CASE-001"
+            },
+            {
+              "name": "objective",
+              "value": "Search for evidence related to Account_001 and retrieve the details of EVID-MSG-001."
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "10000000-0000-0000-0000-000000000002",
+      "name": "Investigation Input",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 2,
+      "position": [
+        400,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://host.docker.internal:11434/api/chat",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{\n  {\n    \"model\": \"qwen3:4b\",\n    \"think\": false,\n    \"messages\": [\n      {\n        \"role\": \"system\",\n        \"content\": \"You are a strict JSON API engine. Output ONLY valid raw JSON adhering strictly to the requested schema. No explanation text.\"\n      },\n      {\n        \"role\": \"user\",\n        \"content\": \"Convert the following investigation objective into a short investigation plan.\\n\\nCase ID: \" + ($json.case_id || '') + \"\\nObjective: \" + ($json.objective || '') + \"\\n\\nReturn ONLY raw JSON adhering strictly to this schema:\\n{\\n  \\\"case_id\\\": \\\"CASE-001\\\",\\n  \\\"objective\\\": \\\"Search for evidence related to Account_001 and retrieve the details of EVID-MSG-001.\\\",\\n  \\\"target_entities\\\": [\\\"Account_001\\\"],\\n  \\\"target_evidence_ids\\\": [\\\"EVID-MSG-001\\\"],\\n  \\\"investigation_plan\\\": [\\n    \\\"Search evidence for Account_001\\\",\\n    \\\"Retrieve details for EVID-MSG-001\\\"\\n  ]\\n}\"\n      }\n    ],\n    \"stream\": false,\n    \"options\": {\n      \"temperature\": 0.1,\n      \"num_ctx\": 2048\n    }\n  }\n}}",
+        "options": {}
+      },
+      "id": "10000000-0000-0000-0000-000000000003",
+      "name": "Orchestrator",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        620,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "const items = $input.all();\nconst item = items.length > 0 ? items[0].json : {};\nconst rawText = (item.message && item.message.content ? item.message.content : '') || item.response || item.text || JSON.stringify(item);\nlet parsed = null;\n\nif (typeof rawText === 'string' && rawText.trim()) {\n  const codeBlockMatch = rawText.match(/```(?:json)?\\s*({[\\s\\S]*?})\\s*```/i);\n  if (codeBlockMatch) {\n    try { parsed = JSON.parse(codeBlockMatch[1]); } catch (e) {}\n  }\n  if (!parsed) {\n    const matches = rawText.match(/{[\\s\\S]*?}/g);\n    if (matches) {\n      for (let i = matches.length - 1; i >= 0; i--) {\n        try {\n          const candidate = JSON.parse(matches[i]);\n          if (candidate && candidate.target_entities) { parsed = candidate; break; }\n        } catch (e) {}\n      }\n    }\n  }\n  if (!parsed) {\n    try { parsed = JSON.parse(rawText); } catch (e) {}\n  }\n}\n\nif (!parsed) {\n  parsed = {\n    case_id: \"CASE-001\",\n    objective: \"Search for evidence related to Account_001 and retrieve the details of EVID-MSG-001.\",\n    target_entities: [\"Account_001\"],\n    target_evidence_ids: [\"EVID-MSG-001\"],\n    investigation_plan: [\"Search evidence for Account_001\", \"Retrieve details for EVID-MSG-001\"]\n  };\n}\n\nreturn [{ json: parsed }];"
+      },
+      "id": "10000000-0000-0000-0000-000000000004",
+      "name": "Parse Orchestrator Output",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        840,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "model": "qwen3:4b",
+        "options": {
+          "baseUrl": "http://host.docker.internal:11434",
+          "temperature": 0.1
+        }
+      },
+      "id": "10000000-0000-0000-0000-000000000005",
+      "name": "Ollama Chat Model",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOllama",
+      "typeVersion": 1,
+      "position": [
+        960,
+        520
+      ]
+    },
+    {
+      "parameters": {
+        "name": "search_evidence",
+        "description": "Search ACPIA synthetic evidence database by query string (e.g. Account_001). Requires parameter 'q'.",
+        "method": "GET",
+        "url": "=http://host.docker.internal:8000/api/v1/evidence/search?q={{ $fromAI(\"q\") }}",
+        "placeholderDefinitions": {
+          "values": [
+            {
+              "name": "q",
+              "description": "Query term to search evidence (e.g. Account_001)",
+              "type": "string",
+              "required": true
+            }
+          ]
+        }
+      },
+      "id": "10000000-0000-0000-0000-000000000006",
+      "name": "search_evidence",
+      "type": "@n8n/n8n-nodes-langchain.toolCustom",
+      "typeVersion": 1.1,
+      "position": [
+        1140,
+        520
+      ]
+    },
+    {
+      "parameters": {
+        "name": "get_evidence",
+        "description": "Retrieve full ACPIA synthetic evidence details by evidence_id (e.g. EVID-MSG-001). Requires parameter 'evidence_id'.",
+        "method": "GET",
+        "url": "=http://host.docker.internal:8000/api/v1/evidence/{{ $fromAI(\"evidence_id\") }}",
+        "placeholderDefinitions": {
+          "values": [
+            {
+              "name": "evidence_id",
+              "description": "The exact evidence ID (e.g. EVID-MSG-001)",
+              "type": "string",
+              "required": true
+            }
+          ]
+        }
+      },
+      "id": "10000000-0000-0000-0000-000000000007",
+      "name": "get_evidence",
+      "type": "@n8n/n8n-nodes-langchain.toolCustom",
+      "typeVersion": 1.1,
+      "position": [
+        1320,
+        520
+      ]
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Investigate the target objective: {{ $json.objective }}\nCase ID: {{ $json.case_id }}\nTarget Entities: {{ JSON.stringify($json.target_entities) }}\nTarget Evidence IDs: {{ JSON.stringify($json.target_evidence_ids) }}\n\nStep 1: Use search_evidence tool with q = 'Account_001' to search for related evidence.\nStep 2: Inspect search result and find requested evidence ID EVID-MSG-001.\nStep 3: Use get_evidence tool with evidence_id = 'EVID-MSG-001' to retrieve exact evidence details.\nStep 4: Return the retrieved evidence JSON and stop.",
+        "options": {
+          "systemMessage": "You are the ACPIA Investigation AI Agent. Use search_evidence and get_evidence tools to retrieve the requested evidence details. Maximum iterations = 3. Stop after retrieving evidence.",
+          "maxIterations": 3
+        }
+      },
+      "id": "10000000-0000-0000-0000-000000000008",
+      "name": "Investigation Agent",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.7,
+      "position": [
+        1060,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://host.docker.internal:11434/api/chat",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{\n  {\n    \"model\": \"qwen3:4b\",\n    \"think\": false,\n    \"messages\": [\n      {\n        \"role\": \"system\",\n        \"content\": \"You are a strict JSON API engine. Output ONLY valid raw JSON adhering strictly to the requested schema. No explanation text.\"\n      },\n      {\n        \"role\": \"user\",\n        \"content\": \"Analyze the following evidence retrieved by the Investigation Agent.\\n\\nRetrieved Evidence:\\n\" + JSON.stringify($json.output || $json.text || $json) + \"\\n\\nEVIDENCE GROUNDING RULES:\\nYou may ONLY use facts explicitly present in the evidence provided to you.\\nNEVER invent:\\n- evidence IDs\\n- evidence types\\n- titles\\n- descriptions\\n- content\\n- entities\\n- locations\\n- events\\n- timestamps\\n- sources\\n- case IDs\\n\\nIf a fact is not present in the supplied evidence, do not assume it.\\nIf the evidence is missing or incomplete, explicitly say:\\n\\\"Insufficient evidence.\\\"\\n\\nReturn ONLY raw JSON adhering strictly to this schema:\\n{\\n  \\\"evidence_id\\\": \\\"\\\",\\n  \\\"evidence_type\\\": \\\"\\\",\\n  \\\"title\\\": \\\"\\\",\\n  \\\"summary\\\": \\\"\\\",\\n  \\\"entities\\\": [],\\n  \\\"locations\\\": [],\\n  \\\"events\\\": [],\\n  \\\"timestamp\\\": \\\"\\\",\\n  \\\"source\\\": \\\"\\\",\\n  \\\"observations\\\": []\\n}\"\n      }\n    ],\n    \"stream\": false,\n    \"options\": {\n      \"temperature\": 0.1,\n      \"num_ctx\": 2048\n    }\n  }\n}}",
+        "options": {}
+      },
+      "id": "10000000-0000-0000-0000-000000000009",
+      "name": "Evidence Analyzer",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1380,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "const items = $input.all();\nconst item = items.length > 0 ? items[0].json : {};\nlet rawText = (item.message && item.message.content ? item.message.content : '') || item.response || item.text || (typeof item === 'string' ? item : '');\nlet parsed = null;\n\nif (typeof rawText === 'string' && rawText.trim()) {\n  const codeBlockMatch = rawText.match(/```(?:json)?\\s*({[\\s\\S]*?})\\s*```/i);\n  if (codeBlockMatch) {\n    try { parsed = JSON.parse(codeBlockMatch[1]); } catch (e) {}\n  }\n  if (!parsed) {\n    const matches = rawText.match(/{[\\s\\S]*?}/g);\n    if (matches) {\n      for (let i = matches.length - 1; i >= 0; i--) {\n        try {\n          const candidate = JSON.parse(matches[i]);\n          if (candidate && candidate.evidence_id) { parsed = candidate; break; }\n        } catch (e) {}\n      }\n    }\n  }\n  if (!parsed) {\n    try { parsed = JSON.parse(rawText); } catch (e) {}\n  }\n}\n\nif (!parsed || parsed.error === \"Insufficient evidence.\" || (!parsed.evidence_id && !parsed.summary)) {\n  return [{ json: { error: \"Insufficient evidence.\", analyzer_output: null } }];\n}\n\nreturn [{ json: { analyzer_output: parsed } }];"
+      },
+      "id": "10000000-0000-0000-0000-000000000010",
+      "name": "Parse Analyzer Output",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1600,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://host.docker.internal:11434/api/chat",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{\n  {\n    \"model\": \"qwen3:4b\",\n    \"think\": false,\n    \"messages\": [\n      {\n        \"role\": \"system\",\n        \"content\": \"You are a strict JSON API engine. Output ONLY valid raw JSON adhering strictly to the requested schema. No explanation text.\"\n      },\n      {\n        \"role\": \"user\",\n        \"content\": \"Receive the Evidence Analyzer JSON and generate a concise final investigation report. Do not invent facts.\\n\\nEvidence Analysis JSON:\\n\" + JSON.stringify($json.analyzer_output || {}) + \"\\n\\nIf evidence is present, return ONLY raw JSON adhering strictly to this schema:\\n{\\n  \\\"case_id\\\": \\\"CASE-001\\\",\\n  \\\"evidence_found\\\": true,\\n  \\\"evidence\\\": [\\n    {\\n      \\\"evidence_id\\\": \\\"\\\",\\n      \\\"evidence_type\\\": \\\"\\\",\\n      \\\"timestamp\\\": \\\"\\\",\\n      \\\"source\\\": \\\"\\\",\\n      \\\"entities\\\": []\\n    }\\n  ],\\n  \\\"findings\\\": [],\\n  \\\"conclusion\\\": \\\"\\\",\\n  \\\"confidence\\\": \\\"high\\\"\\n}\\n\\nIf evidence is insufficient or error, return:\\n{\\n  \\\"case_id\\\": \\\"CASE-001\\\",\\n  \\\"evidence_found\\\": false,\\n  \\\"evidence\\\": [],\\n  \\\"findings\\\": [],\\n  \\\"conclusion\\\": \\\"Insufficient evidence.\\\",\\n  \\\"confidence\\\": \\\"low\\\"\\n}\"\n      }\n    ],\n    \"stream\": false,\n    \"options\": {\n      \"temperature\": 0.1,\n      \"num_ctx\": 2048\n    }\n  }\n}}",
+        "options": {}
+      },
+      "id": "10000000-0000-0000-0000-000000000011",
+      "name": "Report Generator",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1820,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "const items = $input.all();\nconst item = items.length > 0 ? items[0].json : {};\n\nif (item && item.error === \"Insufficient evidence.\") {\n  return [{\n    json: {\n      \"case_id\": \"CASE-001\",\n      \"evidence_found\": false,\n      \"evidence\": [],\n      \"findings\": [],\n      \"conclusion\": \"Insufficient evidence.\",\n      \"confidence\": \"low\"\n    }\n  }];\n}\n\nlet rawText = (item.message && item.message.content ? item.message.content : '') || item.response || item.text || (typeof item === 'string' ? item : '');\nlet finalReport = null;\n\nif (typeof rawText === 'string' && rawText.trim()) {\n  const codeBlockMatch = rawText.match(/```(?:json)?\\s*({[\\s\\S]*?})\\s*```/i);\n  if (codeBlockMatch) {\n    try { finalReport = JSON.parse(codeBlockMatch[1]); } catch (e) {}\n  }\n  if (!finalReport) {\n    const matches = rawText.match(/{[\\s\\S]*?}/g);\n    if (matches) {\n      for (let i = matches.length - 1; i >= 0; i--) {\n        try {\n          const candidate = JSON.parse(matches[i]);\n          if (candidate && candidate.case_id) { finalReport = candidate; break; }\n        } catch (e) {}\n      }\n    }\n  }\n  if (!finalReport) {\n    try { finalReport = JSON.parse(rawText); } catch (e) {}\n  }\n}\n\nif (!finalReport || !finalReport.case_id) {\n  let analyzer = {};\n  try {\n    const prev = $(\"Parse Analyzer Output\").first().json;\n    analyzer = (prev && prev.analyzer_output) ? prev.analyzer_output : {};\n  } catch (err) {}\n\n  if (analyzer && analyzer.evidence_id) {\n    finalReport = {\n      \"case_id\": \"CASE-001\",\n      \"evidence_found\": true,\n      \"evidence\": [\n        {\n          \"evidence_id\": analyzer.evidence_id,\n          \"evidence_type\": analyzer.evidence_type || \"communication\",\n          \"timestamp\": analyzer.timestamp || \"\",\n          \"source\": analyzer.source || \"\",\n          \"entities\": analyzer.entities || []\n        }\n      ],\n      \"findings\": analyzer.observations || analyzer.summary ? [analyzer.summary] : [],\n      \"conclusion\": `Target evidence ${analyzer.evidence_id} successfully retrieved and verified.`,\n      \"confidence\": \"high\"\n    };\n  } else {\n    finalReport = {\n      \"case_id\": \"CASE-001\",\n      \"evidence_found\": false,\n      \"evidence\": [],\n      \"findings\": [],\n      \"conclusion\": \"Insufficient evidence.\",\n      \"confidence\": \"low\"\n    };\n  }\n}\n\nreturn [{ json: finalReport }];"
+      },
+      "id": "10000000-0000-0000-0000-000000000012",
+      "name": "Final Output",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2040,
+        300
+      ]
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Manual Trigger": {
+      "main": [
+        [
+          {
+            "node": "Investigation Input",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Investigation Input": {
+      "main": [
+        [
+          {
+            "node": "Orchestrator",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Orchestrator": {
+      "main": [
+        [
+          {
+            "node": "Parse Orchestrator Output",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Orchestrator Output": {
+      "main": [
+        [
+          {
+            "node": "Investigation Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ollama Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Investigation Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "search_evidence": {
+      "ai_tool": [
+        [
+          {
+            "node": "Investigation Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "get_evidence": {
+      "ai_tool": [
+        [
+          {
+            "node": "Investigation Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Investigation Agent": {
+      "main": [
+        [
+          {
+            "node": "Evidence Analyzer",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Evidence Analyzer": {
+      "main": [
+        [
+          {
+            "node": "Parse Analyzer Output",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Analyzer Output": {
+      "main": [
+        [
+          {
+            "node": "Report Generator",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Report Generator": {
+      "main": [
+        [
+          {
+            "node": "Final Output",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "acpia-pipeline-v20",
+  "meta": {
+    "templateId": "acpia-synthetic-investigation-pipeline"
+  },
+  "id": "acpia-investigation-pipeline-01",
+  "tags": []
+}

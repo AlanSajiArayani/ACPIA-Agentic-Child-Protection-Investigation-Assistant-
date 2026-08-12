@@ -53,10 +53,22 @@ services:
     image: ollama/ollama:latest
     container_name: acpia_ollama
     restart: unless-stopped
+    environment:
+      - OLLAMA_KEEP_ALIVE=24h
+      - OLLAMA_NUM_PARALLEL=2
+      - OLLAMA_MAX_LOADED_MODELS=2
     ports:
       - "11434:11434"
     volumes:
       - ollama_data:/root/.ollama
+    # GPU Acceleration (uncomment if NVIDIA container toolkit is installed):
+    # deploy:
+    #   resources:
+    #     reservations:
+    #       devices:
+    #         - driver: nvidia
+    #           count: all
+    #           capabilities: [gpu]
 
   # ----------------------------------------------------------------------------
   # Self-Hosted n8n Workflow Orchestrator
